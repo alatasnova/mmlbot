@@ -10,7 +10,6 @@ base {
     archivesName = project.archives_base_name
 }
 
-
 repositories {
     // Add repositories to retrieve artifacts from in here.
     // You should only use this when depending on other mods because
@@ -52,6 +51,7 @@ tasks.withType(JavaCompile).configureEach {
         it.options.release.set(targetJavaVersion)
     }
 }
+
 
 java {
     def javaVersion = JavaVersion.toVersion(targetJavaVersion)
