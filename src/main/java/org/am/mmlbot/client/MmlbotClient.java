@@ -1,6 +1,7 @@
 package org.am.mmlbot.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
@@ -22,8 +23,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.am.mmlbot.client.bot.MmlBot;
+import org.am.mmlbot.client.bot.MmlCommands;
+import org.am.mmlbot.client.bot.PvpBot;
 
 public class MmlbotClient implements ClientModInitializer {
+    private static final MmlBot bot = new PvpBot();
 
     private List<RankedAction> botMemory = new ArrayList<>();
     private Entity currentEnemy;
@@ -51,6 +56,12 @@ public class MmlbotClient implements ClientModInitializer {
         }
 
         return ActionResult.PASS;
+        ClientTickEvents.END_CLIENT_TICK.register(bot::tick);
+
+        ClientCommandRegistrationCallback.EVENT
+                .register((dispatcher, registryAccess) ->
+                        MmlCommands.register(dispatcher)
+                );
     }
 
     public void onPlayerJoin(ClientPlayNetworkHandler handler, PacketSender sender, MinecraftClient client){
@@ -106,5 +117,9 @@ public class MmlbotClient implements ClientModInitializer {
         // Try to perform current ranked action
         currentRankedAction.performByTick(currentActionTick);
         currentActionTick++;
+    }
+
+    public static MmlBot getBot() {
+        return bot;
     }
 }
