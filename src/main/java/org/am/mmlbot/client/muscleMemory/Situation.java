@@ -1,4 +1,4 @@
-package org.am.mmlbot;
+package org.am.mmlbot.client.muscleMemory;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.Vec3d;
@@ -20,28 +20,6 @@ public class Situation {
         this.enemyYawToBot = enemyYawToBot;
         this.closingSpeed = closingSpeed;
         this.isGrounded = isGrounded;
-    }
-
-    @Override
-    public String toString() {
-        return String.format(
-                "EnemyData {\n" +
-                        "  Distance to enemy: %.2f blocks\n" +
-                        "  Yaw to enemy:      %.2f°\n" +
-                        "  Pitch to enemy:    %.2f°\n" +
-                        "  Enemy pitch to bot: %.2f°\n" +
-                        "  Enemy yaw to bot:   %.2f°\n" +
-                        "  Closing speed:     %.2f blocks/s\n" +
-                        "  Is grounded:       %s\n" +
-                        "}",
-                distanceToEnemy,
-                yawToEnemy,
-                pitchToEnemy,
-                enemyPitchToBot,
-                enemyYawToBot,
-                closingSpeed,
-                isGrounded ? "Yes" : "No"
-        );
     }
 
     public Situation(Entity enemy, Entity bot) {
@@ -92,5 +70,29 @@ public class Situation {
                         Math.pow(situation.enemyPitchToBot - enemyPitchToBot, 2) +
                         Math.pow(situation.enemyYawToBot - enemyYawToBot, 2) +
                         Math.pow(situation.closingSpeed - closingSpeed, 2) + isGroundedDt);
+    }
+
+    @Override
+    public String toString() {
+        return String.format(
+                          """
+                          EnemyData {
+                          Distance to enemy: %.2f blocks
+                          Yaw to enemy:      %.2f°
+                          Pitch to enemy:    %.2f°
+                          Enemy pitch to bot: %.2f°
+                          Enemy yaw to bot:   %.2f°
+                          Closing speed:     %.2f blocks/s
+                          Is grounded:       %s
+                          }
+                          """,
+                distanceToEnemy,
+                yawToEnemy,
+                pitchToEnemy,
+                enemyPitchToBot,
+                enemyYawToBot,
+                closingSpeed,
+                isGrounded ? "Yes" : "No"
+        );
     }
 }

@@ -1,4 +1,4 @@
-package org.am.mmlbot.client.bot;
+package org.am.mmlbot.client;
 
 import static net.fabricmc.fabric.api.client.command.v2.ClientCommandManager.*;
 
@@ -8,7 +8,6 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.text.Text;
-import org.am.mmlbot.client.MmlbotClient;
 
 public class MmlCommands {
     public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
@@ -16,7 +15,7 @@ public class MmlCommands {
                 .then(literal("start")
                         .executes(context -> {
                             MinecraftClient client = context.getSource().getClient();
-                            MmlbotClient.getBot().enable(client);
+                            MmlbotClient.getBot().enable();
 
                             ClientPlayerEntity player = client.player;
                             if (player == null)
@@ -28,7 +27,7 @@ public class MmlCommands {
                 .then(literal("stop")
                         .executes(context -> {
                             MinecraftClient client = context.getSource().getClient();
-                            MmlbotClient.getBot().disable(client);
+                            MmlbotClient.getBot().disable();
 
                             ClientPlayerEntity player = client.player;
                             if (player == null)
