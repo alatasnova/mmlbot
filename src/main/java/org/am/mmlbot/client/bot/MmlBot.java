@@ -1,83 +1,111 @@
 package org.am.mmlbot.client.bot;
 
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.entity.Entity;
 import org.am.mmlbot.DebugUtils;
-import org.am.mmlbot.MuscleMemoryAction;
-import org.am.mmlbot.RankedAction;
-import org.am.mmlbot.Situation;
+import org.am.mmlbot.client.muscleMemory.Action;
+import org.am.mmlbot.client.muscleMemory.Memory;
+import org.am.mmlbot.client.muscleMemory.Situation;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class MmlBot {
+public class MmlBot {
     protected boolean enabled = false;
-    public List<RankedAction> botMemory = new ArrayList<>();
-    protected RankedAction currentRankedAction;
+
+    public List<Memory> botMemories = new ArrayList<>();
+    protected Memory currentMemory;
     protected int currentActionTick;
 
-    // TODO: эти параметры индивидуальны для каждого наследуемого класса, надо их как то обозначить
+    protected Entity currentTarget;
+
     protected float minRankedActionDistance = 35f;
-    protected int maxMuscleMemoryActionsLength = 2;
+    protected int maxActionsLength = 2;
 
-    public final void enable(MinecraftClient client) {
-        if (enabled) return;
-        enabled = true;
-        onEnable(client);
+    public void setTarget(Entity entity){
+        currentTarget = entity;
     }
 
-    public final void addRankedAction(RankedAction rankedAction){
-        botMemory.add(rankedAction);
+    public final void addMemory(Memory memory){
+        botMemories.add(memory);
     }
 
-    public final void performRankedAction(RankedAction rankedAction){
-        currentRankedAction = rankedAction;
+    public final void replayMemory(Memory memory){
+        currentMemory = memory;
         currentActionTick = 0;
     }
 
-    public List<MuscleMemoryAction> generateNewMuscleMemoryActions(){
+    public List<Action> generateNewActions(){
         // TODO: mutate already existing may be more reliable
         DebugUtils.chat("Generating new random MMAction...");
 
-        List<MuscleMemoryAction> result = new ArrayList<>();
-        for(int i = 0; i < maxMuscleMemoryActionsLength; i++) { // idea: vary length?
-            result.add(MuscleMemoryAction.generateRandom());
+        List<Action> result = new ArrayList<>();
+        for(int i = 0; i < maxActionsLength; i++) { // idea: vary length? - mirka: yup
+            result.add(Action.generateRandom());
         }
         return result;
     }
 
-    public final RankedAction getRankedActionBySituation(Situation situation){
+    public final Memory getClosestMemoryBySituation(Situation situation){
         // TODO: LINEAR SEARCH IS VERY VERY SLOW. We have to migrate to optimized vector db as soon as possible.
         float minDistance = minRankedActionDistance; // flexible threshold
-        RankedAction closestRankedAction = null;
-        for (RankedAction rankedAction : botMemory){
-            float distance = rankedAction.situation.calculateDistance(situation);
+        Memory closestMemory = null;
+        for (Memory memory : botMemories){
+            float distance = memory.situation.calculateDistance(situation);
             if (distance < minDistance) {
-                closestRankedAction = rankedAction;
+                closestMemory = memory;
                 minDistance = distance;
             }
         }
 
         // Generating new ranked action if we haven't found something related
-        if (closestRankedAction == null){
-            closestRankedAction = new RankedAction(125, situation, generateNewMuscleMemoryActions());
-            addRankedAction(closestRankedAction);
+        if (closestMemory == null){
+            closestMemory = new Memory(125, situation, generateNewActions());
+            addMemory(closestMemory);
         }
 
-        return closestRankedAction;
+        return closestMemory;
     }
 
-    public final void disable(MinecraftClient client) {
-        if (!enabled) return;
-        enabled = false;
-        onDisable(client);
+    protected Situation getCurrentSituation(){
+        MinecraftClient mc = MinecraftClient.getInstance();
+        assert mc.player != null;
+
+        Situation sit = new Situation(mc.player, currentTarget);
+
+        DebugUtils.chat(sit.toString());
+
+        return sit;
+    }
+
+    private void updateCurrentRankedAction(){
+        Memory newMemory = getClosestMemoryBySituation(getCurrentSituation());
+        replayMemory(newMemory);
     }
 
     public final void tick(MinecraftClient client) {
-        if (!enabled) return;
-        onTick(client);
+        if (!enabled || client.player == null)
+            return;
+
+        if (currentMemory == null)
+            updateCurrentRankedAction();
+
+        // if action is completed search for new
+//        if (currentRankedAction.getActionIdByTick(currentActionTick) == -1)
+//            updateCurrentRankedAction();
+
+        currentMemory.performByTick(currentActionTick);
+        currentActionTick++;
     }
 
-    protected abstract void onEnable(MinecraftClient client);
-    protected abstract void onDisable(MinecraftClient client);
-    protected abstract void onTick(MinecraftClient client);
+    public final void enable() {
+        if (enabled) return;
+        enabled = true;
+    }
+
+    public final void disable() {
+        if (!enabled) return;
+        currentMemory = null; // noo why would we reset all the memory... save it?
+        enabled = false;
+    }
 }

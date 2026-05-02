@@ -15,20 +15,18 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.EntityHitResult;
 import net.minecraft.world.World;
-import org.am.mmlbot.MuscleMemoryAction;
-import org.am.mmlbot.RankedAction;
+import org.am.mmlbot.client.muscleMemory.Action;
+import org.am.mmlbot.client.muscleMemory.Memory;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
-import org.am.mmlbot.Situation;
+import org.am.mmlbot.client.muscleMemory.Situation;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 import org.am.mmlbot.client.bot.MmlBot;
-import org.am.mmlbot.client.bot.MmlCommands;
-import org.am.mmlbot.client.bot.PvpBot;
 
 public class MmlbotClient implements ClientModInitializer {
-    private static final PvpBot bot = new PvpBot();
+    private static final MmlBot bot = new MmlBot();
 
     @Override
     public void onInitializeClient() {
@@ -48,8 +46,8 @@ public class MmlbotClient implements ClientModInitializer {
         if (MinecraftClient.getInstance().player != null){
             if (playerEntity.getName().equals(MinecraftClient.getInstance().player.getName())){
                 playerEntity.sendMessage(Text.literal("Теперь " + entity.getName() + " наш враг"), false);
-                bot.setCurrentEnemy(entity);
-                bot.enable(MinecraftClient.getInstance());
+                bot.setTarget(entity);
+                bot.enable();
             }
         }
 
@@ -65,19 +63,19 @@ public class MmlbotClient implements ClientModInitializer {
 
         player.sendMessage(Text.literal("Создание тестового RankedAction..."), false);
 
-        List<MuscleMemoryAction> muscleMemoryActions = new ArrayList<>();
+        List<Action> actions = new ArrayList<>();
 
-        muscleMemoryActions.add(new MuscleMemoryAction(
+        actions.add(new Action(
                 false, false, false, 1, 0, 180, 0f
         ));
-        muscleMemoryActions.add(new MuscleMemoryAction(
+        actions.add(new Action(
                 false, false, false, 0, 0, 0, 45
         ));
 
-        bot.addRankedAction(new RankedAction(
+        bot.addMemory(new Memory(
                 125,
                 new Situation(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true),
-                muscleMemoryActions
+                actions
         ));
     }
 
