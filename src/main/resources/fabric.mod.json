@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "id": "mmlbot",
+  "version": "${version}",
+  "name": "MMLBot",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/mmlbot/icon.png",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "org.am.mmlbot.client.MmlbotClient"
+    ],
+    "main": [
+      "org.am.mmlbot.Mmlbot"
+    ]
+  },
+  "mixins": [
+    "mmlbot.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric-api": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}
