@@ -28,19 +28,17 @@ import org.am.mmlbot.client.bot.MmlCommands;
 import org.am.mmlbot.client.bot.PvpBot;
 
 public class MmlbotClient implements ClientModInitializer {
-    private static final MmlBot bot = new PvpBot();
-
-    private List<RankedAction> botMemory = new ArrayList<>();
-    private Entity currentEnemy;
-
-    private RankedAction currentRankedAction;
-    private int currentActionTick;
+    private static final PvpBot bot = new PvpBot();
 
     @Override
     public void onInitializeClient() {
         ClientPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
-        ClientTickEvents.END_CLIENT_TICK.register(this::onEndTick);
+        ClientTickEvents.END_CLIENT_TICK.register(bot::tick);
         AttackEntityCallback.EVENT.register(this::onPlayerAttack);
+        ClientCommandRegistrationCallback.EVENT
+                .register((dispatcher, registryAccess) ->
+                        MmlCommands.register(dispatcher)
+                );
     }
 
     private ActionResult onPlayerAttack(PlayerEntity playerEntity, World world, Hand hand, Entity entity, @Nullable EntityHitResult entityHitResult) {
@@ -50,18 +48,12 @@ public class MmlbotClient implements ClientModInitializer {
         if (MinecraftClient.getInstance().player != null){
             if (playerEntity.getName().equals(MinecraftClient.getInstance().player.getName())){
                 playerEntity.sendMessage(Text.literal("Теперь " + entity.getName() + " наш враг"), false);
-                currentEnemy = entity;
-                performRankedAction(botMemory.getLast());
+                bot.setCurrentEnemy(entity);
+                bot.enable(MinecraftClient.getInstance());
             }
         }
 
         return ActionResult.PASS;
-        ClientTickEvents.END_CLIENT_TICK.register(bot::tick);
-
-        ClientCommandRegistrationCallback.EVENT
-                .register((dispatcher, registryAccess) ->
-                        MmlCommands.register(dispatcher)
-                );
     }
 
     public void onPlayerJoin(ClientPlayNetworkHandler handler, PacketSender sender, MinecraftClient client){
@@ -76,47 +68,17 @@ public class MmlbotClient implements ClientModInitializer {
         List<MuscleMemoryAction> muscleMemoryActions = new ArrayList<>();
 
         muscleMemoryActions.add(new MuscleMemoryAction(
-                false, false, false, 0, 0, 180, 0f
+                false, false, false, 1, 0, 180, 0f
         ));
         muscleMemoryActions.add(new MuscleMemoryAction(
                 false, false, false, 0, 0, 0, 45
         ));
 
-//        muscleMemoryActions.add(new MuscleMemoryAction(
-//                false, false, false, 0, -1, -0.5f, -1f
-//        ));
-//        muscleMemoryActions.add(new MuscleMemoryAction(
-//                false, false, false, 1, -1, -4.0f, -0f
-//        ));
-//        muscleMemoryActions.add(new MuscleMemoryAction(
-//                true, false, false, 1, 1, 6.28f, -1f
-//        ));
-//        muscleMemoryActions.add(new MuscleMemoryAction(
-//                true, true, false, 1, 0, 0.0f, 3f
-//        ));
-//        muscleMemoryActions.add(new MuscleMemoryAction(
-//                false, false, false, 0, 0, 1.5f, 2f
-//        ));
-
-        botMemory.add(new RankedAction(
+        bot.addRankedAction(new RankedAction(
                 125,
                 new Situation(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true),
                 muscleMemoryActions
         ));
-    }
-
-    public void performRankedAction(RankedAction rankedAction){
-        currentRankedAction = rankedAction;
-        currentActionTick = 0;
-    }
-
-    public void onEndTick(MinecraftClient client){
-        if (client.player == null || currentRankedAction == null)
-            return;
-
-        // Try to perform current ranked action
-        currentRankedAction.performByTick(currentActionTick);
-        currentActionTick++;
     }
 
     public static MmlBot getBot() {

@@ -1,7 +1,6 @@
 package org.am.mmlbot;
 
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.text.Text;
 
 import java.util.List;
 
@@ -10,7 +9,7 @@ public class RankedAction {
     public Situation situation;
     public List<MuscleMemoryAction> muscleMemoryActions;
 
-    private static int actionDurationTicks = 20;
+    private static final int actionDurationTicks = 10;
 
     public RankedAction(float rating, Situation situation, List<MuscleMemoryAction> muscleMemoryActions) {
         this.rating = rating;
@@ -24,6 +23,7 @@ public class RankedAction {
             return -1;
         return elementId;
     }
+
 
     public void performByTick(int currentActionTick) {
         MinecraftClient mc = MinecraftClient.getInstance();
