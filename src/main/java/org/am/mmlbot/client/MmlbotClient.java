@@ -31,7 +31,6 @@ public class MmlbotClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientPlayConnectionEvents.JOIN.register(this::onPlayerJoin);
-        ClientTickEvents.END_CLIENT_TICK.register(bot::tick);
         AttackEntityCallback.EVENT.register(this::onPlayerAttack);
         ClientCommandRegistrationCallback.EVENT
                 .register((dispatcher, registryAccess) ->
@@ -40,17 +39,12 @@ public class MmlbotClient implements ClientModInitializer {
     }
 
     private ActionResult onPlayerAttack(PlayerEntity playerEntity, World world, Hand hand, Entity entity, @Nullable EntityHitResult entityHitResult) {
-
-        playerEntity.sendMessage(Text.literal(playerEntity.getName() + " ударила " + entity.getName()), false);
-
         if (MinecraftClient.getInstance().player != null){
             if (playerEntity.getName().equals(MinecraftClient.getInstance().player.getName())){
-                playerEntity.sendMessage(Text.literal("Теперь " + entity.getName() + " наш враг"), false);
                 bot.setTarget(entity);
-                bot.enable();
+//                bot.enable();
             }
         }
-
         return ActionResult.PASS;
     }
 
@@ -60,23 +54,6 @@ public class MmlbotClient implements ClientModInitializer {
             return;
 
         player.sendMessage(Text.literal("MMLBot Успешно запушен."), false);
-
-        player.sendMessage(Text.literal("Создание тестового RankedAction..."), false);
-
-        List<Action> actions = new ArrayList<>();
-
-        actions.add(new Action(
-                false, false, false, 1, 0, 180, 0f
-        ));
-        actions.add(new Action(
-                false, false, false, 0, 0, 0, 45
-        ));
-
-        bot.addMemory(new Memory(
-                125,
-                new Situation(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, true),
-                actions
-        ));
     }
 
     public static MmlBot getBot() {
